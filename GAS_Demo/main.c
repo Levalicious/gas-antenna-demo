@@ -61,10 +61,10 @@
 #endif
 
 /* GAs parameters */
-#define POPULATION_SIZE     500           // chromosomes
-#define MAX_GENERATIONS     10000         // number of generations to evolve
-#define XOVER_PROB          0.75           // crossover probability
-#define MUTATION_PROB       0.32         // mutation probability
+#define POPULATION_SIZE     10000           // chromosomes
+#define MAX_GENERATIONS     1000         // number of generations to evolve
+#define XOVER_PROB          0.4           // crossover probability
+#define MUTATION_PROB       0.3         // mutation probability
 #define C_AIR               (double)300000000        // m/s
 #define LAMBDA(f)           (double)(C_AIR/f)           // wavelength for a given frequency
 #define TO_DEGREES(x)        (double)(x*(180/M_PI))
@@ -232,7 +232,7 @@ void select_best(struct population *p)
     for(int i=0;i<nr_points;++i){
         p->c[POPULATION_SIZE].pts[i].px = p->c[p->best_chromosome_idx].pts[i].px;
         p->c[POPULATION_SIZE].pts[i].py = p->c[p->best_chromosome_idx].pts[i].py;
-        p->c[POPULATION_SIZE].pts[i].pz = p->c[p->best_chromosome_idx].pts[i].pz;
+        p->c[POPULATION_SIZE].pts[i].pz = 0.0;
     }
 }
 
@@ -281,7 +281,7 @@ void apply_elitism(struct population *p)
         for(int i=0;i<nr_points;++i){
             p->c[POPULATION_SIZE].pts[i].px = p->c[best_idx].pts[i].px;
             p->c[POPULATION_SIZE].pts[i].py = p->c[best_idx].pts[i].py;
-            p->c[POPULATION_SIZE].pts[i].pz = p->c[best_idx].pts[i].pz;
+            p->c[POPULATION_SIZE].pts[i].pz = 0.0;
         }
         p->c[POPULATION_SIZE].fitness = p->c[best_idx].fitness;
     }
@@ -289,7 +289,7 @@ void apply_elitism(struct population *p)
         for(int i=0;i<nr_points;++i){
             p->c[worst_idx].pts[i].px = p->c[POPULATION_SIZE].pts[i].px;
             p->c[worst_idx].pts[i].py = p->c[POPULATION_SIZE].pts[i].py;
-            p->c[worst_idx].pts[i].pz = p->c[POPULATION_SIZE].pts[i].pz;
+            p->c[worst_idx].pts[i].pz = 0.0;
         }
         p->c[worst_idx].fitness = p->c[POPULATION_SIZE].fitness;
     }
@@ -357,15 +357,15 @@ void apply_crossover(struct population *p)
                     // swap
                     tmp->px = p1->pts[j].px;
                     tmp->py = p1->pts[j].py;
-                    tmp->pz = p1->pts[j].pz;
+                    tmp->pz = 0.0;
 
                     p1->pts[j].px = p->c[i].pts[j].px;
                     p1->pts[j].py = p->c[i].pts[j].py;
-                    p1->pts[j].pz = p->c[i].pts[j].pz;
+                    p1->pts[j].pz = 0.0;
 
                     p->c[i].pts[j].px = tmp->px;
                     p->c[i].pts[j].py = tmp->py;
-                    p->c[i].pts[j].pz = tmp->pz;
+                    p->c[i].pts[j].pz = 0.0;
                 }
             }
             else
@@ -386,7 +386,7 @@ void apply_mutation(struct population *p)
             for(int j=0;j<nr_points;++j){
                 p->c[i].pts[j].px = randomize(0, Lmax);
                 p->c[i].pts[j].py = randomize(0, Lmax);
-                p->c[i].pts[j].pz = randomize(0, Lmax);
+                p->c[i].pts[j].pz = 0.0;
             }
         }
     }
@@ -419,7 +419,7 @@ int main(int argc, char* argv[]){
 
     /* get data from the input file */
     get_input_data();
-    Lmax = 0.5 * LAMBDA(frequency);                           // in m - max length of the segment
+    Lmax = 0.02; //0.5 * LAMBDA(frequency);                           // in m - max length of the segment
     representation_size= nr_points*BITS_PER_GENE;             // bits / chromosome
     gene_size= BITS_PER_GENE;                                 // bits / gene (3 coordinates: x, y, z)
 
