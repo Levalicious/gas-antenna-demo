@@ -61,10 +61,10 @@
 #endif
 
 /* GAs parameters */
-#define POPULATION_SIZE     10000           // chromosomes
-#define MAX_GENERATIONS     1000         // number of generations to evolve
-#define XOVER_PROB          0.4           // crossover probability
-#define MUTATION_PROB       0.3         // mutation probability
+#define POPULATION_SIZE     1000           // chromosomes
+#define MAX_GENERATIONS     10000         // number of generations to evolve
+#define XOVER_PROB          0.3          // crossover probability
+#define MUTATION_PROB       0.2         // mutation probability
 #define C_AIR               (double)300000000        // m/s
 #define LAMBDA(f)           (double)(C_AIR/f)           // wavelength for a given frequency
 #define TO_DEGREES(x)        (double)(x*(180/M_PI))
@@ -141,6 +141,7 @@ double compute_gain(double theta, double phi){
     return ret;
 }
 
+
 /* the fitness function to be minimised - minimum defines the gain closest to the desired one */
 double f(struct chromosome* c){
     double ret = 0.0f;
@@ -149,9 +150,21 @@ double f(struct chromosome* c){
     /* compute the global gain of the antenna */
     for(int i=0;i<nr_points-1;++i){
         ang = compute_angles(&(c->pts[i]), &(c->pts[i+1]));
+        for (int j = i + 1; j < nr_points; ++j) {
+            double dx = (c->pts[i].px - c->pts[j].px);
+            double dy = (c->pts[i].py - c->pts[j].py);
+            double dz = (c->pts[i].pz - c->pts[j].pz);
+        	double segdist = (dx * dx) + (dy * dy) + (dz * dz);
+	        if (sqrt(segdist) < 0.0101) {
+	        	global_gain += 50 * 15;
+	        }
+        }
+
         global_gain += compute_gain(ang[0], ang[1]);
         global_gain /= (nr_points - 1);
     }
+    
+    
     ret = fabs(global_gain - target_gain);
     if(ang) free(ang);
     return ret;
@@ -383,9 +396,12 @@ void apply_mutation(struct population *p)
     for(int i=0;i<p->size;++i){
         prb = rand()%1000/1000.0;
         if(prb < MUTATION_PROB){
-            for(int j=0;j<nr_points;++j){
-                p->c[i].pts[j].px = randomize(0, Lmax);
-                p->c[i].pts[j].py = randomize(0, Lmax);
+            p->c[i].pts[0].px = randomize(-Lmax, Lmax);
+            p->c[i].pts[0].py = randomize(-Lmax, Lmax);
+            p->c[i].pts[0].pz = 0.0;
+            for(int j=1;j<nr_points;++j){
+                p->c[i].pts[j].px = randomize(p->c[i].pts[j - 1].px - Lmax, p->c[i].pts[j - 1].px + Lmax);
+                p->c[i].pts[j].py = randomize(p->c[i].pts[j - 1].py - Lmax, p->c[i].pts[j - 1].py + Lmax);
                 p->c[i].pts[j].pz = 0.0;
             }
         }
